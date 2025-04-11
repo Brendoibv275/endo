@@ -1,0 +1,513 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% if form.instance.pk %}Editar{% else %}Novo{% endif %} Paciente - OdontoEndo{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Estilos para o formulário gamificado */
+    .form-wizard {
+        position: relative;
+    }
+    
+    .form-step {
+        opacity: 0;
+        height: 0;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .form-step.active {
+        opacity: 1;
+        height: auto;
+        overflow: visible;
+    }
+    
+    .step-indicators {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        position: relative;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    .step-indicators::before {
+        content: '';
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        right: 20px;
+        height: 2px;
+        background: rgba(255,255,255,0.1);
+        z-index: 1;
+    }
+    
+    .step-indicator {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: var(--medium-dark);
+        border: 2px solid rgba(255,255,255,0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-family: var(--font-display);
+        color: var(--text-secondary);
+        position: relative;
+        z-index: 2;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .step-indicator.active {
+        background: linear-gradient(45deg, var(--primary-color), var(--primary-light));
+        color: white;
+        border-color: var(--primary-light);
+        box-shadow: 0 0 15px rgba(0, 102, 204, 0.5);
+    }
+    
+    .step-indicator.completed {
+        background: var(--success-color);
+        color: white;
+        border-color: var(--success-color);
+    }
+    
+    .step-label {
+        position: absolute;
+        top: 45px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        width: 80px;
+        text-align: center;
+        white-space: nowrap;
+    }
+    
+    .step-indicator.active .step-label {
+        color: var(--primary-light);
+    }
+    
+    .section-card {
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+    }
+    
+    .form-navigation {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+    }
+    
+    .form-field {
+        position: relative;
+        margin-bottom: 20px;
+    }
+    
+    .form-field .icon {
+        position: absolute;
+        left: 12px;
+        top: 38px;
+        color: var(--text-secondary);
+    }
+    
+    .form-field .form-control {
+        padding-left: 40px;
+    }
+    
+    /* Animação de entrada de campos */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .form-step.active .form-field {
+        animation: fadeInUp 0.5s ease forwards;
+    }
+    
+    .form-step.active .form-field:nth-child(1) { animation-delay: 0.1s; }
+    .form-step.active .form-field:nth-child(2) { animation-delay: 0.2s; }
+    .form-step.active .form-field:nth-child(3) { animation-delay: 0.3s; }
+    .form-step.active .form-field:nth-child(4) { animation-delay: 0.4s; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0 d-flex align-items-center">
+            <i class="fas {% if form.instance.pk %}fa-user-edit{% else %}fa-user-plus{% endif %} me-3 text-primary"></i>
+            {% if form.instance.pk %}Editar Paciente{% else %}Novo Paciente{% endif %}
+        </h1>
+        <a href="{% url 'pacientes:paciente_lista' %}" class="btn game-btn game-btn-outline">
+            <i class="fas fa-arrow-left me-md-2"></i><span class="d-none d-md-inline">Voltar</span>
+        </a>
+    </div>
+    
+    <div class="game-card">
+        <div class="game-card-header">
+            <i class="fas fa-id-card me-2"></i> {% if form.instance.pk %}Informações do Paciente{% else %}Cadastro de Paciente{% endif %}
+        </div>
+        <div class="game-card-body">
+            <form method="post" enctype="multipart/form-data" id="paciente-form" class="form-wizard" novalidate>
+                {% csrf_token %}
+                
+                <!-- Indicadores de etapas -->
+                <div class="step-indicators mb-4">
+                    <div class="step-indicator active" data-step="1">
+                        1
+                        <div class="step-label">Pessoal</div>
+                    </div>
+                    <div class="step-indicator" data-step="2">
+                        2
+                        <div class="step-label">Contato</div>
+                    </div>
+                    <div class="step-indicator" data-step="3">
+                        3
+                        <div class="step-label">Endereço</div>
+                    </div>
+                    <div class="step-indicator" data-step="4">
+                        4
+                        <div class="step-label">Finalizar</div>
+                    </div>
+                </div>
+                
+                <!-- Etapa 1: Dados Pessoais -->
+                <div class="form-step active" data-step="1">
+                    <div class="section-card">
+                        <h5 class="text-primary mb-3">
+                            <i class="fas fa-user me-2"></i> Dados Pessoais
+                        </h5>
+                        
+                        <div class="form-field">
+                            <div class="icon"><i class="fas fa-user"></i></div>
+                            {{ form.nome|as_crispy_field }}
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-field">
+                                    <div class="icon"><i class="fas fa-birthday-cake"></i></div>
+                                    {{ form.data_nascimento|as_crispy_field }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-field">
+                                    <div class="icon"><i class="fas fa-id-card"></i></div>
+                                    {{ form.cpf|as_crispy_field }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-navigation">
+                        <div></div>
+                        <button type="button" class="btn game-btn game-btn-primary next-btn" data-next="2">
+                            Próximo <i class="fas fa-arrow-right ms-2"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Etapa 2: Contato -->
+                <div class="form-step" data-step="2">
+                    <div class="section-card">
+                        <h5 class="text-primary mb-3">
+                            <i class="fas fa-phone me-2"></i> Informações de Contato
+                        </h5>
+                        
+                        <div class="form-field">
+                            <div class="icon"><i class="fas fa-phone"></i></div>
+                            {{ form.telefone|as_crispy_field }}
+                        </div>
+                        
+                        <div class="form-field">
+                            <div class="icon"><i class="fas fa-envelope"></i></div>
+                            {{ form.email|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <div class="form-navigation">
+                        <button type="button" class="btn game-btn game-btn-outline prev-btn" data-prev="1">
+                            <i class="fas fa-arrow-left me-2"></i> Anterior
+                        </button>
+                        <button type="button" class="btn game-btn game-btn-primary next-btn" data-next="3">
+                            Próximo <i class="fas fa-arrow-right ms-2"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Etapa 3: Endereço -->
+                <div class="form-step" data-step="3">
+                    <div class="section-card">
+                        <h5 class="text-primary mb-3">
+                            <i class="fas fa-map-marker-alt me-2"></i> Endereço
+                        </h5>
+                        
+                        <div class="form-field">
+                            <div class="icon"><i class="fas fa-home"></i></div>
+                            {{ form.endereco|as_crispy_field }}
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-field">
+                                    <div class="icon"><i class="fas fa-city"></i></div>
+                                    {{ form.cidade|as_crispy_field }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-field">
+                                    <div class="icon"><i class="fas fa-map"></i></div>
+                                    {{ form.estado|as_crispy_field }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-field">
+                                    <div class="icon"><i class="fas fa-map-pin"></i></div>
+                                    {{ form.cep|as_crispy_field }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-navigation">
+                        <button type="button" class="btn game-btn game-btn-outline prev-btn" data-prev="2">
+                            <i class="fas fa-arrow-left me-2"></i> Anterior
+                        </button>
+                        <button type="button" class="btn game-btn game-btn-primary next-btn" data-next="4">
+                            Próximo <i class="fas fa-arrow-right ms-2"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Etapa 4: Finalizar -->
+                <div class="form-step" data-step="4">
+                    <div class="section-card">
+                        <h5 class="text-primary mb-3">
+                            <i class="fas fa-check-circle me-2"></i> Informações Adicionais
+                        </h5>
+                        
+                        <div class="form-field">
+                            <div class="icon"><i class="fas fa-camera"></i></div>
+                            {{ form.foto|as_crispy_field }}
+                        </div>
+                        
+                        <div class="form-field">
+                            <div class="icon"><i class="fas fa-clipboard"></i></div>
+                            {{ form.observacoes|as_crispy_field }}
+                        </div>
+                        
+                        <div class="game-alert game-alert-info mt-4">
+                            <div class="game-alert-icon">
+                                <i class="fas fa-info-circle"></i>
+                            </div>
+                            <div class="game-alert-content">
+                                <strong>Quase lá!</strong> Verifique se todas as informações estão corretas antes de finalizar o cadastro.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-navigation">
+                        <button type="button" class="btn game-btn game-btn-outline prev-btn" data-prev="3">
+                            <i class="fas fa-arrow-left me-2"></i> Anterior
+                        </button>
+                        <button type="submit" class="btn game-btn game-btn-primary">
+                            <i class="fas fa-save me-2"></i> Salvar Paciente
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Elementos do formulário
+        const form = document.getElementById('paciente-form');
+        const steps = document.querySelectorAll('.form-step');
+        const stepIndicators = document.querySelectorAll('.step-indicator');
+        const nextButtons = document.querySelectorAll('.next-btn');
+        const prevButtons = document.querySelectorAll('.prev-btn');
+        
+        // Navegar para a próxima etapa
+        nextButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const currentStep = parseInt(this.dataset.next) - 1;
+                const nextStep = parseInt(this.dataset.next);
+                
+                if (validateStep(currentStep)) {
+                    goToStep(nextStep);
+                } else {
+                    // Efeito de shake no formulário atual se houver erros
+                    const currentStepEl = document.querySelector(`.form-step[data-step="${currentStep}"]`);
+                    currentStepEl.style.animation = 'shake 0.5s ease';
+                    setTimeout(() => {
+                        currentStepEl.style.animation = '';
+                    }, 500);
+                }
+            });
+        });
+        
+        // Navegar para a etapa anterior
+        prevButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const prevStep = parseInt(this.dataset.prev);
+                goToStep(prevStep);
+            });
+        });
+        
+        // Clicar nos indicadores de etapa
+        stepIndicators.forEach(indicator => {
+            indicator.addEventListener('click', function() {
+                const clickedStep = parseInt(this.dataset.step);
+                const currentStep = getCurrentStep();
+                
+                if (clickedStep < currentStep) {
+                    // Pode voltar para qualquer etapa anterior
+                    goToStep(clickedStep);
+                } else if (clickedStep === currentStep + 1) {
+                    // Só pode avançar para a próxima etapa após validação
+                    if (validateStep(currentStep)) {
+                        goToStep(clickedStep);
+                    }
+                }
+            });
+        });
+        
+        // Obter a etapa atual
+        function getCurrentStep() {
+            const activeStep = document.querySelector('.form-step.active');
+            return parseInt(activeStep.dataset.step);
+        }
+        
+        // Navegar para uma etapa específica
+        function goToStep(step) {
+            // Esconder todas as etapas
+            steps.forEach(s => {
+                s.classList.remove('active');
+            });
+            
+            // Mostrar a etapa desejada
+            document.querySelector(`.form-step[data-step="${step}"]`).classList.add('active');
+            
+            // Atualizar os indicadores de etapa
+            stepIndicators.forEach(indicator => {
+                const indicatorStep = parseInt(indicator.dataset.step);
+                indicator.classList.remove('active', 'completed');
+                
+                if (indicatorStep === step) {
+                    indicator.classList.add('active');
+                } else if (indicatorStep < step) {
+                    indicator.classList.add('completed');
+                }
+            });
+            
+            // Rolar para o topo
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        }
+        
+        // Validar campos de uma etapa
+        function validateStep(stepNumber) {
+            const stepEl = document.querySelector(`.form-step[data-step="${stepNumber}"]`);
+            const requiredFields = stepEl.querySelectorAll('input[required]');
+            let isValid = true;
+            
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    isValid = false;
+                    
+                    // Destacar campo com erro
+                    const formGroup = field.closest('.form-group');
+                    formGroup.classList.add('was-validated');
+                    
+                    // Adicionar efeito visual
+                    field.classList.add('border-danger');
+                    setTimeout(() => {
+                        field.classList.remove('border-danger');
+                    }, 2000);
+                }
+            });
+            
+            return isValid;
+        }
+        
+        // Adicionar efeito de shake para animação de erro
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+                20%, 40%, 60%, 80% { transform: translateX(5px); }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Aplicar máscaras para campos específicos em dispositivos móveis
+        // CPF
+        const cpfInput = document.querySelector('input[name="cpf"]');
+        if (cpfInput) {
+            cpfInput.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length > 11) value = value.slice(0, 11);
+                
+                if (value.length > 9) {
+                    value = value.replace(/^(\d{3})(\d{3})(\d{3})(\d{2}).*/, '$1.$2.$3-$4');
+                } else if (value.length > 6) {
+                    value = value.replace(/^(\d{3})(\d{3})(\d{0,3}).*/, '$1.$2.$3');
+                } else if (value.length > 3) {
+                    value = value.replace(/^(\d{3})(\d{0,3}).*/, '$1.$2');
+                }
+                
+                e.target.value = value;
+            });
+        }
+        
+        // Telefone
+        const telInput = document.querySelector('input[name="telefone"]');
+        if (telInput) {
+            telInput.setAttribute('type', 'tel');
+            telInput.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length > 11) value = value.slice(0, 11);
+                
+                if (value.length > 10) {
+                    value = value.replace(/^(\d{2})(\d{5})(\d{4}).*/, '($1) $2-$3');
+                } else if (value.length > 6) {
+                    value = value.replace(/^(\d{2})(\d{4})(\d{0,4}).*/, '($1) $2-$3');
+                } else if (value.length > 2) {
+                    value = value.replace(/^(\d{2})(\d{0,5}).*/, '($1) $2');
+                }
+                
+                e.target.value = value;
+            });
+        }
+        
+        // CEP
+        const cepInput = document.querySelector('input[name="cep"]');
+        if (cepInput) {
+            cepInput.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length > 8) value = value.slice(0, 8);
+                
+                if (value.length > 5) {
+                    value = value.replace(/^(\d{5})(\d{3}).*/, '$1-$2');
+                }
+                
+                e.target.value = value;
+            });
+        }
+    });
+</script>
+{% endblock %}

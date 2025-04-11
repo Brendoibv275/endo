@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}Excluir Ficha Clu00ednica{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="card-title mb-0">Confirmar Exclusu00e3o</h5>
+                </div>
+                <div class="card-body">
+                    <h4>Tem certeza que deseja excluir esta ficha clu00ednica?</h4>
+                    <p><strong>Paciente:</strong> {{ object.paciente.nome }}</p>
+                    <p><strong>Dente:</strong> {{ object.dente|default:"Nu00e3o especificado" }}</p>
+                    <p><strong>Data de Abertura:</strong> {{ object.data_abertura|date:"d/m/Y" }}</p>
+                    <p><strong>Queixa Principal:</strong> {{ object.queixa_principal|truncatechars:100 }}</p>
+                    
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i> Esta au00e7u00e3o nu00e3o pode ser desfeita. Todas as sessu00f5es de atendimento associadas a esta ficha tambm seru00e3o excluu00eddas.
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'fichas_clinicas:ficha_detail' object.id %}" class="btn btn-outline-secondary me-md-2">
+                                Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash"></i> Confirmar Exclusu00e3o
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

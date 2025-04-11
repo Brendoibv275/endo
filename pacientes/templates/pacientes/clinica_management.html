@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Gerenciamento da Clínica{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="mb-0">
+                    <i class="fas fa-hospital me-3"></i>Gerenciamento da Clínica
+                </h1>
+                <a href="{% url 'add_clinica_user' %}" class="btn btn-primary">
+                    <i class="fas fa-user-plus me-2"></i>Adicionar Usuário
+                </a>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3>Informações da Clínica</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Nome:</strong> {{ clinica.nome }}</p>
+                            <p><strong>CNPJ:</strong> {{ clinica.cnpj }}</p>
+                            <p><strong>Endereço:</strong> {{ clinica.endereco }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Telefone:</strong> {{ clinica.telefone }}</p>
+                            <p><strong>E-mail:</strong> {{ clinica.email }}</p>
+                            <p><strong>Responsável:</strong> {{ clinica.responsavel.get_full_name }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>Usuários da Clínica</h3>
+                </div>
+                <div class="card-body">
+                    {% if membros %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Nome</th>
+                                        <th>E-mail</th>
+                                        <th>Função</th>
+                                        <th>Data de Entrada</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for membro in membros %}
+                                        <tr>
+                                            <td>{{ membro.user.get_full_name }}</td>
+                                            <td>{{ membro.user.email }}</td>
+                                            <td>{{ membro.funcao.nome }}</td>
+                                            <td>{{ membro.created_at|date:"d/m/Y" }}</td>
+                                            <td>
+                                                <button type="button" class="btn btn-danger btn-sm" 
+                                                        onclick="confirmarRemocao('{{ membro.user.id }}')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-center">Nenhum usuário cadastrado na clínica.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmarRemocao(userId) {
+    if (confirm('Tem certeza que deseja remover este usuário?')) {
+        window.location.href = `/pacientes/clinica/remover/${userId}/`;
+    }
+}
+</script>
+{% endblock %} 

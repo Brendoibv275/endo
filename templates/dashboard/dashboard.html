@@ -1,0 +1,534 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - OdontoEndo{% endblock %}
+
+{% block extra_css %}
+<!-- Chart.js -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css">
+<style>
+    .dental-card {
+        background-color: var(--medium-dark);
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.1);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        overflow: hidden;
+        margin-bottom: 20px;
+        position: relative;
+        transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+    
+    .dental-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+    }
+    
+    .dental-card-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        padding: 12px 16px;
+        font-weight: 600;
+        color: white;
+        display: flex;
+        align-items: center;
+    }
+    
+    .dental-card-header i {
+        margin-right: 8px;
+    }
+    
+    .dental-card-body {
+        padding: 16px;
+    }
+    
+    .stat-card {
+        background: linear-gradient(145deg, var(--medium-dark), var(--light-bg));
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        text-align: center;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        position: relative;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    }
+    
+    .stat-icon {
+        height: 50px;
+        width: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: var(--primary-light);
+        margin-bottom: 10px;
+    }
+    
+    .stat-value {
+        font-size: 28px;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 5px;
+    }
+    
+    .stat-label {
+        font-size: 14px;
+        color: var(--text-secondary);
+    }
+    
+    .chart-container {
+        position: relative;
+        margin: auto;
+        height: 250px;
+        width: 100%;
+    }
+    
+    .fade-in {
+        animation: fadeIn 0.6s ease forwards;
+        opacity: 0;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .dental-theme {
+        position: relative;
+    }
+    
+    .dental-theme::after {
+        content: '';
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 70px;
+        height: 70px;
+        background-image: url('https://cdn-icons-png.flaticon.com/512/3004/3004458.png');
+        background-size: contain;
+        background-repeat: no-repeat;
+        opacity: 0.15;
+        pointer-events: none;
+    }
+    
+    .tooth-icon-bg {
+        position: absolute;
+        width: 120px;
+        height: 120px;
+        background-image: url('https://cdn-icons-png.flaticon.com/512/2865/2865942.png');
+        background-size: contain;
+        background-repeat: no-repeat;
+        opacity: 0.05;
+        bottom: -20px;
+        right: -20px;
+        transform: rotate(15deg);
+        pointer-events: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="py-2">
+    <!-- Saudação -->
+    <div class="mb-4 fade-in">
+        <h1 class="mb-2 d-flex align-items-center">
+            <i class="fas fa-tooth me-3 text-primary"></i>
+            Olá, {{ user.first_name|default:user.username }}
+        </h1>
+        <p class="text-secondary mb-0">Bem-vindo(a) ao seu sistema de gerenciamento endodôntico</p>
+    </div>
+    
+    <!-- Estatísticas principais -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="stat-card fade-in" style="animation-delay: 0.1s">
+                <div class="stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h2 class="stat-value">{{ total_pacientes }}</h2>
+                <div class="stat-label">Pacientes</div>
+                <a href="{% url 'pacientes:paciente_lista' %}" class="stretched-link"></a>
+                <div class="tooth-icon-bg"></div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card fade-in" style="animation-delay: 0.2s">
+                <div class="stat-icon">
+                    <i class="fas fa-folder-open"></i>
+                </div>
+                <h2 class="stat-value">{{ total_fichas }}</h2>
+                <div class="stat-label">Fichas Ativas</div>
+                <a href="{% url 'fichas_clinicas:list' %}" class="stretched-link"></a>
+                <div class="tooth-icon-bg"></div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card fade-in" style="animation-delay: 0.3s">
+                <div class="stat-icon">
+                    <i class="fas fa-sync-alt"></i>
+                </div>
+                <h2 class="stat-value">{{ fichas_em_andamento }}</h2>
+                <div class="stat-label">Em Andamento</div>
+                <a href="{% url 'fichas_clinicas:list' %}?termo_busca=Em Andamento" class="stretched-link"></a>
+                <div class="tooth-icon-bg"></div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card fade-in" style="animation-delay: 0.4s">
+                <div class="stat-icon">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <h2 class="stat-value">{{ sessoes_recentes }}</h2>
+                <div class="stat-label">Sessões Hoje</div>
+                <a href="{% url 'fichas_clinicas:sessao_lista' %}" class="stretched-link"></a>
+                <div class="tooth-icon-bg"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Gráficos -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+            <div class="dental-card fade-in dental-theme" style="animation-delay: 0.5s">
+                <div class="dental-card-header">
+                    <i class="fas fa-chart-pie me-2"></i> Distribuição de Tratamentos
+                </div>
+                <div class="dental-card-body">
+                    <div class="chart-container">
+                        <canvas id="treatmentDistribution"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="dental-card fade-in dental-theme" style="animation-delay: 0.6s">
+                <div class="dental-card-header">
+                    <i class="fas fa-chart-line me-2"></i> Atendimentos Mensais
+                </div>
+                <div class="dental-card-body">
+                    <div class="chart-container">
+                        <canvas id="monthlyAppointments"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Próximas Sessões Agendadas -->
+    <div class="dental-card mb-4 fade-in" style="animation-delay: 0.7s">
+        <div class="dental-card-header d-flex justify-content-between align-items-center">
+            <div>
+                <i class="fas fa-calendar-alt me-2"></i> Próximas Sessões Agendadas
+            </div>
+            <a href="{% url 'fichas_clinicas:sessao_lista' %}" class="badge bg-primary" style="text-decoration: none;">
+                Ver Todas
+            </a>
+        </div>
+        <div class="dental-card-body p-0">
+            <div class="table-responsive">
+                <table class="table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Horário</th>
+                            <th>Paciente</th>
+                            <th>Tipo</th>
+                            <th class="text-end">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if proximas_sessoes %}
+                            {% for sessao in proximas_sessoes %}
+                            <tr>
+                                <td>{{ sessao.data_sessao|date:"d/m/Y" }}</td>
+                                <td>{{ sessao.hora_sessao|default:"--:--" }}</td>
+                                <td>{{ sessao.ficha.paciente.nome }}</td>
+                                <td><span class="badge bg-info">{{ sessao.tipo_sessao|default:"Consulta" }}</span></td>
+                                <td class="text-end">
+                                    <div class="btn-group">
+                                        <a href="{% url 'fichas_clinicas:sessao_detalhe' sessao.id %}" class="btn btn-sm btn-outline-primary btn-action">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'fichas_clinicas:sessao_update' sessao.id %}" class="btn btn-sm btn-outline-warning btn-action">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4">
+                                    <p class="text-secondary mb-0">Nenhuma sessão agendada para os próximos dias.</p>
+                                    <small class="text-secondary">Clique em "Agendar Próxima Sessão" na página do paciente para criar um agendamento.</small>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Ações rápidas -->
+    <div class="dental-card mb-4 fade-in" style="animation-delay: 0.8s">
+        <div class="dental-card-header">
+            <i class="fas fa-bolt me-2"></i> Ações Rápidas
+        </div>
+        <div class="dental-card-body">
+            <div class="row g-3">
+                <div class="col-6 col-md-3">
+                    <a href="{% url 'pacientes:paciente_novo' %}" class="btn btn-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center" style="padding: 15px 10px;">
+                        <i class="fas fa-user-plus mb-2" style="font-size: 1.5rem;"></i>
+                        <span>Novo<br>Paciente</span>
+                    </a>
+                </div>
+                <div class="col-6 col-md-3">
+                    <a href="{% url 'fichas_clinicas:create' %}" class="btn btn-outline-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center" style="padding: 15px 10px;">
+                        <i class="fas fa-file-medical mb-2" style="font-size: 1.5rem;"></i>
+                        <span>Nova<br>Ficha</span>
+                    </a>
+                </div>
+                <div class="col-6 col-md-3">
+                    <a href="{% url 'fichas_clinicas:list' %}?termo_busca=Em Andamento" class="btn btn-outline-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center" style="padding: 15px 10px;">
+                        <i class="fas fa-sync-alt mb-2" style="font-size: 1.5rem;"></i>
+                        <span>Tratamentos<br>em Andamento</span>
+                    </a>
+                </div>
+                <div class="col-6 col-md-3">
+                    <a href="{% url 'fichas_clinicas:sessao_lista' %}" class="btn btn-outline-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center" style="padding: 15px 10px;">
+                        <i class="fas fa-calendar-check mb-2" style="font-size: 1.5rem;"></i>
+                        <span>Ver<br>Sessões</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Panorama de Procedimentos -->
+        <div class="col-md-6 mb-4">
+            <div class="dental-card h-100 fade-in dental-theme" style="animation-delay: 0.9s">
+                <div class="dental-card-header">
+                    <i class="fas fa-tooth me-2"></i> Panorama de Procedimentos
+                </div>
+                <div class="dental-card-body">
+                    <div class="chart-container" style="height: 200px;">
+                        <canvas id="procedureChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tarefas e Lembretes -->
+        <div class="col-md-6 mb-4">
+            <div class="dental-card h-100 fade-in" style="animation-delay: 1s">
+                <div class="dental-card-header">
+                    <i class="fas fa-clipboard-list me-2"></i> Lembretes
+                </div>
+                <div class="dental-card-body p-0">
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item d-flex align-items-center">
+                            <div class="me-3">
+                                <i class="fas fa-circle text-primary" style="font-size: 10px;"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <p class="mb-0">Lembrar de contatar pacientes com tratamentos pendentes</p>
+                            </div>
+                            <div>
+                                <span class="badge bg-primary">Hoje</span>
+                            </div>
+                        </div>
+                        <div class="list-group-item d-flex align-items-center">
+                            <div class="me-3">
+                                <i class="fas fa-circle text-primary" style="font-size: 10px;"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <p class="mb-0">Verificar estoque de materiais endodônticos</p>
+                            </div>
+                            <div>
+                                <span class="badge bg-primary">Esta semana</span>
+                            </div>
+                        </div>
+                        <div class="list-group-item d-flex align-items-center">
+                            <div class="me-3">
+                                <i class="fas fa-circle text-primary" style="font-size: 10px;"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <p class="mb-0">Atualizar registros de pacientes antigos</p>
+                            </div>
+                            <div>
+                                <span class="badge bg-primary">Este mês</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Configuração de cores para os gráficos
+        const colors = {
+            blue: 'rgb(0, 102, 204)',
+            lightBlue: 'rgb(0, 194, 255)',
+            green: 'rgb(16, 185, 129)',
+            orange: 'rgb(245, 158, 11)',
+            red: 'rgb(239, 68, 68)',
+            purple: 'rgb(139, 92, 246)'
+        };
+        
+        // Configuração comum para os gráficos
+        const commonOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: 'rgb(148, 163, 184)',
+                        font: {
+                            size: 12
+                        },
+                        padding: 15
+                    }
+                }
+            }
+        };
+        
+        // Obter dados do contexto
+        const tratamentosDados = JSON.parse('{{ tratamentos_dados|safe }}');
+        const atendimentosLabels = JSON.parse('{{ atendimentos_labels|safe }}');
+        const atendimentosDados = JSON.parse('{{ atendimentos_mensais|safe }}');
+        const procedimentosDados = JSON.parse('{{ procedimentos_dados|safe }}');
+        
+        // Gráfico de distribuição de tratamentos
+        const treatmentCtx = document.getElementById('treatmentDistribution').getContext('2d');
+        new Chart(treatmentCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Endodontia', 'Restaurações', 'Avaliações', 'Retratamentos'],
+                datasets: [{
+                    data: tratamentosDados,
+                    backgroundColor: [
+                        colors.blue,
+                        colors.lightBlue,
+                        colors.green,
+                        colors.orange
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                ...commonOptions,
+                cutout: '70%',
+                plugins: {
+                    ...commonOptions.plugins,
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.label}: ${context.raw}%`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Gráfico de atendimentos mensais
+        const appointmentsCtx = document.getElementById('monthlyAppointments').getContext('2d');
+        new Chart(appointmentsCtx, {
+            type: 'line',
+            data: {
+                labels: atendimentosLabels,
+                datasets: [{
+                    label: 'Atendimentos',
+                    data: atendimentosDados,
+                    borderColor: colors.blue,
+                    backgroundColor: 'rgba(0, 102, 204, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                ...commonOptions,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.05)'
+                        },
+                        ticks: {
+                            color: 'rgb(148, 163, 184)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: 'rgb(148, 163, 184)'
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Gráfico de procedimentos
+        const procedureCtx = document.getElementById('procedureChart').getContext('2d');
+        new Chart(procedureCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Tratamento de Canal', 'Retratamento', 'Urgências', 'Avaliação'],
+                datasets: [{
+                    label: 'Realizados neste mês',
+                    data: procedimentosDados,
+                    backgroundColor: [
+                        'rgba(0, 102, 204, 0.7)',
+                        'rgba(0, 194, 255, 0.7)',
+                        'rgba(16, 185, 129, 0.7)',
+                        'rgba(245, 158, 11, 0.7)'
+                    ],
+                    borderWidth: 0,
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                ...commonOptions,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.05)'
+                        },
+                        ticks: {
+                            color: 'rgb(148, 163, 184)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: 'rgb(148, 163, 184)'
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

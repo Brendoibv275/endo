@@ -1,0 +1,421 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load form_utils %}
+
+{% block title %}
+    {% if object %}Editar Ficha Clínica{% else %}Nova Ficha Clínica{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .nav-tabs .nav-link {
+        border-radius: 0.5rem 0.5rem 0 0;
+        padding: 12px 20px;
+        font-weight: 600;
+        color: #6c757d;
+        border: 1px solid #dee2e6;
+        border-bottom: none;
+        margin-right: 5px;
+    }
+    
+    .nav-tabs .nav-link.active {
+        background-color: #fff;
+        color: #2563eb;
+        border-bottom: none;
+        border-top: 3px solid #2563eb;
+    }
+    
+    .card {
+        border-radius: 0.75rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        border: none;
+        transition: all 0.3s ease;
+    }
+    
+    .card-header {
+        background-color: rgba(0, 0, 0, 0.03);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+        padding: 1rem 1.25rem;
+        border-radius: 0.75rem 0.75rem 0 0;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-control, .form-select {
+        border-radius: 0.5rem;
+        padding: 0.7rem 1rem;
+    }
+    
+    label {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #4b5563;
+    }
+    
+    .btn {
+        border-radius: 0.5rem;
+        padding: 0.6rem 1.2rem;
+        font-weight: 600;
+    }
+    
+    .btn-primary {
+        background-color: #2563eb;
+        border-color: #2563eb;
+    }
+    
+    .btn-outline-secondary {
+        border: 1px solid #6c757d;
+        color: #6c757d;
+    }
+    
+    .card-section {
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1.5rem;
+        background-color: #f8fafc;
+        border-left: 4px solid #2563eb;
+    }
+    
+    .form-header {
+        margin-bottom: 2rem;
+        border-bottom: 1px solid #e5e7eb;
+        padding-bottom: 1rem;
+    }
+    
+    .hint-text {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-top: 0.25rem;
+    }
+    
+    .required-field::after {
+        content: " *";
+        color: #ef4444;
+    }
+    
+    .tab-content {
+        padding: 2rem;
+        background-color: #fff;
+        border: 1px solid #dee2e6;
+        border-top: none;
+        border-radius: 0 0 0.5rem 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="form-header d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-file-medical me-2"></i>
+            {% if object %}Editar Ficha Clínica{% else %}Nova Ficha Clínica{% endif %}
+        </h1>
+        <a href="{% url 'fichas_clinicas:list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Voltar
+        </a>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'error' %}fa-exclamation-circle{% else %}fa-info-circle{% endif %} me-2"></i>
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <ul class="nav nav-tabs" id="fichaTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="geral-tab" data-bs-toggle="tab" data-bs-target="#geral" type="button" role="tab" aria-controls="geral" aria-selected="true">
+                        <i class="fas fa-info-circle me-2"></i>Informações Gerais
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="anamnese-tab" data-bs-toggle="tab" data-bs-target="#anamnese" type="button" role="tab" aria-controls="anamnese" aria-selected="false">
+                        <i class="fas fa-clipboard-list me-2"></i>Anamnese
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="exame-tab" data-bs-toggle="tab" data-bs-target="#exame" type="button" role="tab" aria-controls="exame" aria-selected="false">
+                        <i class="fas fa-stethoscope me-2"></i>Exame Clínico
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="diagnostico-tab" data-bs-toggle="tab" data-bs-target="#diagnostico" type="button" role="tab" aria-controls="diagnostico" aria-selected="false">
+                        <i class="fas fa-diagnoses me-2"></i>Diagnóstico
+                    </button>
+                </li>
+            </ul>
+
+            <form method="post" class="needs-validation" novalidate>
+                {% csrf_token %}
+                
+                <div class="tab-content" id="fichaTabContent">
+                    {% if ficha_form.errors or anamnese_form.errors or exame_form.errors or diagnostico_form.errors %}
+                    <div class="alert alert-danger mb-4">
+                        <h5><i class="fas fa-exclamation-triangle me-2"></i>Atenção! Existem erros no formulário:</h5>
+                        <ul class="mb-0">
+                            {% for field, errors in ficha_form.errors.items %}
+                                {% for error in errors %}
+                                    <li>{{ ficha_form.fields|get_field_verbose_name:field }}: {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                            
+                            {% for field, errors in anamnese_form.errors.items %}
+                                {% for error in errors %}
+                                    <li>{{ anamnese_form.fields|get_field_verbose_name:field }}: {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                            
+                            {% for field, errors in exame_form.errors.items %}
+                                {% for error in errors %}
+                                    <li>{{ exame_form.fields|get_field_verbose_name:field }}: {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                            
+                            {% for field, errors in diagnostico_form.errors.items %}
+                                {% for error in errors %}
+                                    <li>{{ diagnostico_form.fields|get_field_verbose_name:field }}: {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                        </ul>
+                        <p class="mt-2 mb-0">Você pode salvar parcialmente a ficha para continuar mais tarde.</p>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Informações Gerais -->
+                    <div class="tab-pane fade show active" id="geral" role="tabpanel" aria-labelledby="geral-tab">
+                        <h4 class="mb-4"><i class="fas fa-info-circle me-2"></i>Informações Gerais do Paciente</h4>
+                        <p class="hint-text mb-4">Preencha as informações básicas da ficha clínica.</p>
+                        
+                        <div class="card-section">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    {{ ficha_form.paciente|as_crispy_field }}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ ficha_form.dente|as_crispy_field }}
+                                </div>
+                            </div>
+                            
+                            <div class="row g-3 mt-2">
+                                <div class="col-md-12">
+                                    {{ ficha_form.queixa_principal|as_crispy_field }}
+                                </div>
+                            </div>
+                            
+                            <div class="row g-3 mt-2">
+                                <div class="col-md-6">
+                                    {{ ficha_form.data_abertura|as_crispy_field }}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ ficha_form.status|as_crispy_field }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'fichas_clinicas:list' %}" class="btn btn-outline-secondary">Cancelar</a>
+                            <div>
+                                <button type="submit" name="save_partial" class="btn btn-success me-2">
+                                    <i class="fas fa-save me-2"></i>Salvar
+                                </button>
+                                <button type="button" class="btn btn-primary next-tab" data-next="anamnese-tab">
+                                    Próximo: Anamnese <i class="fas fa-arrow-right ms-2"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Anamnese -->
+                    <div class="tab-pane fade" id="anamnese" role="tabpanel" aria-labelledby="anamnese-tab">
+                        <h4 class="mb-4"><i class="fas fa-clipboard-list me-2"></i>Anamnese</h4>
+                        <p class="hint-text mb-4">Registre o histórico médico e queixas do paciente.</p>
+                        
+                        <div class="card-section">
+                            {{ anamnese_form|crispy }}
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mt-4">
+                            <button type="button" class="btn btn-outline-secondary prev-tab" data-prev="geral-tab">
+                                <i class="fas fa-arrow-left me-2"></i> Voltar: Informações Gerais
+                            </button>
+                            <div>
+                                <button type="submit" name="save_partial" class="btn btn-success me-2">
+                                    <i class="fas fa-save me-2"></i>Salvar
+                                </button>
+                                <button type="button" class="btn btn-primary next-tab" data-next="exame-tab">
+                                    Próximo: Exame Clínico <i class="fas fa-arrow-right ms-2"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Exame Clínico -->
+                    <div class="tab-pane fade" id="exame" role="tabpanel" aria-labelledby="exame-tab">
+                        <h4 class="mb-4"><i class="fas fa-stethoscope me-2"></i>Exame Clínico</h4>
+                        <p class="hint-text mb-4">Registre os resultados do exame clínico do paciente.</p>
+                        
+                        <div class="card-section">
+                            {{ exame_form|crispy }}
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mt-4">
+                            <button type="button" class="btn btn-outline-secondary prev-tab" data-prev="anamnese-tab">
+                                <i class="fas fa-arrow-left me-2"></i> Voltar: Anamnese
+                            </button>
+                            <div>
+                                <button type="submit" name="save_partial" class="btn btn-success me-2">
+                                    <i class="fas fa-save me-2"></i>Salvar
+                                </button>
+                                <button type="button" class="btn btn-primary next-tab" data-next="diagnostico-tab">
+                                    Próximo: Diagnóstico <i class="fas fa-arrow-right ms-2"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Diagnóstico -->
+                    <div class="tab-pane fade" id="diagnostico" role="tabpanel" aria-labelledby="diagnostico-tab">
+                        <h4 class="mb-4"><i class="fas fa-diagnoses me-2"></i>Diagnóstico e Plano de Tratamento</h4>
+                        <p class="hint-text mb-4">Registre o diagnóstico e plano de tratamento proposto.</p>
+                        
+                        <div class="card-section">
+                            {{ diagnostico_form|crispy }}
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mt-4">
+                            <button type="button" class="btn btn-outline-secondary prev-tab" data-prev="exame-tab">
+                                <i class="fas fa-arrow-left me-2"></i> Voltar: Exame Clínico
+                            </button>
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-save me-2"></i> Salvar Ficha Clínica
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Verifica se há erros no formulário e ativa a aba correspondente
+        function checkForErrors() {
+            const tabs = ['geral', 'anamnese', 'exame', 'diagnostico'];
+            
+            // Verificar qual aba possui erros
+            for (const tabId of tabs) {
+                const tabPane = document.getElementById(tabId);
+                const invalidFields = tabPane.querySelectorAll('.is-invalid');
+                
+                if (invalidFields.length > 0) {
+                    document.getElementById(tabId + '-tab').click();
+                    invalidFields[0].focus();
+                    return;
+                }
+            }
+            
+            // Se não houver erros, verificar se há um parâmetro na URL para ativar uma aba específica
+            const urlParams = new URLSearchParams(window.location.search);
+            const activeTab = urlParams.get('tab');
+            
+            if (activeTab && tabs.includes(activeTab)) {
+                document.getElementById(activeTab + '-tab').click();
+            }
+        }
+        
+        // Executar ao carregar a página
+        checkForErrors();
+        
+        // Navegação entre abas
+        const navButtons = document.querySelectorAll('.next-tab, .prev-tab');
+        
+        navButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const targetTab = this.classList.contains('next-tab') 
+                    ? this.getAttribute('data-next') 
+                    : this.getAttribute('data-prev');
+                
+                document.getElementById(targetTab).click();
+                window.scrollTo(0, 0);
+            });
+        });
+        
+        // Adicionar parâmetro na URL ao mudar de aba
+        const tabButtons = document.querySelectorAll('[data-bs-toggle="tab"]');
+        
+        tabButtons.forEach(button => {
+            button.addEventListener('shown.bs.tab', function(event) {
+                const tabId = event.target.id.replace('-tab', '');
+                
+                // Atualizar URL sem recarregar a página
+                const url = new URL(window.location);
+                url.searchParams.set('tab', tabId);
+                window.history.pushState({}, '', url);
+            });
+        });
+        
+        // Toggle para campos condicionais
+        function setupConditionalField(triggerSelector, targetSelector) {
+            const trigger = document.querySelector(triggerSelector);
+            const target = document.querySelector(targetSelector);
+            
+            if (trigger && target) {
+                // Estado inicial
+                target.style.display = trigger.checked ? 'block' : 'none';
+                
+                // Ouvinte de eventos
+                trigger.addEventListener('change', function() {
+                    target.style.display = this.checked ? 'block' : 'none';
+                });
+            }
+        }
+        
+        // Aplica para campos específicos (ajuste conforme necessário)
+        setupConditionalField('input[name="dor_presente"]', '.dor-campos');
+        setupConditionalField('input[name="rarefacao_ossea"]', '.rarefacao-tipo');
+        
+        // Validação de formulário
+        const form = document.querySelector('form.needs-validation');
+        
+        form.addEventListener('submit', function(event) {
+            // Verificar se é um salvamento parcial
+            const isPartialSave = event.submitter && event.submitter.name === 'save_partial';
+            
+            // Para salvamento parcial, permitir envio mesmo com campos inválidos
+            if (!isPartialSave && !form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                // Encontrar a primeira aba com erro e ativá-la
+                const tabs = ['geral', 'anamnese', 'exame', 'diagnostico'];
+                
+                for (const tabId of tabs) {
+                    const tabPane = document.getElementById(tabId);
+                    const invalidFields = tabPane.querySelectorAll(':invalid');
+                    
+                    if (invalidFields.length > 0) {
+                        document.getElementById(tabId + '-tab').click();
+                        invalidFields[0].focus();
+                        break;
+                    }
+                }
+            }
+            
+            if (!isPartialSave) {
+                form.classList.add('was-validated');
+            }
+        });
+    });
+</script>
+{% endblock %} 

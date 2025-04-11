@@ -1,0 +1,272 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Ficha Clínica - {{ ficha.paciente.nome }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-file-medical me-2"></i>Ficha Clínica
+        </h1>
+        <div class="btn-group">
+            <a href="{% url 'fichas_clinicas:update' ficha.pk %}" class="btn btn-warning">
+                <i class="fas fa-edit me-2"></i>Editar
+            </a>
+            <a href="{% url 'fichas_clinicas:delete' ficha.pk %}" class="btn btn-danger">
+                <i class="fas fa-trash me-2"></i>Excluir
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="row g-4">
+                <!-- Informações Gerais -->
+                <div class="col-md-6">
+                    <div class="card h-100 border-primary">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-info-circle me-2"></i>Informações Gerais
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Paciente:</strong> {{ ficha.paciente.nome }}</p>
+                                    <p><strong>Dente:</strong> {{ ficha.dente }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Data de Abertura:</strong> {{ ficha.data_abertura|date:"d/m/Y" }}</p>
+                                    <p><strong>Status:</strong> 
+                                        <span class="badge bg-{% if ficha.status == 'A' %}primary{% elif ficha.status == 'E' %}warning{% else %}success{% endif %}">
+                                            {{ ficha.get_status_display }}
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                            <p><strong>Queixa Principal:</strong> {{ ficha.queixa_principal }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Anamnese -->
+                <div class="col-md-6">
+                    <div class="card h-100 border-info">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-clipboard-list me-2"></i>Anamnese
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if ficha.anamnese %}
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>Tratamento Médico:</strong> {{ ficha.anamnese.tratamento_medico|yesno:"Sim,Não" }}</p>
+                                        <p><strong>Uso de Medicamentos:</strong> {{ ficha.anamnese.uso_medicamentos|default:"Não informado" }}</p>
+                                        <p><strong>Alergias:</strong> {{ ficha.anamnese.alergias|default:"Não informado" }}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>Dor Presente:</strong> {{ ficha.anamnese.dor_presente|yesno:"Sim,Não" }}</p>
+                                        <p><strong>Estímulo:</strong> {{ ficha.anamnese.get_estimulo_display|default:"Não informado" }}</p>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <p class="text-muted">Anamnese não registrada</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Exame Clínico -->
+                <div class="col-md-6">
+                    <div class="card h-100 border-warning">
+                        <div class="card-header bg-warning text-white">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-stethoscope me-2"></i>Exame Clínico
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if ficha.exame_clinico %}
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>Exame Extraoral:</strong> {{ ficha.exame_clinico.exame_extraoral|default:"Não informado" }}</p>
+                                        <p><strong>Exame Intraoral:</strong> {{ ficha.exame_clinico.exame_intraoral|default:"Não informado" }}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>Testes Pulpares:</strong> {{ ficha.exame_clinico.testes_pulpares|default:"Não informado" }}</p>
+                                        <p><strong>Radiografia:</strong> {{ ficha.exame_clinico.radiografia|default:"Não informado" }}</p>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <p class="text-muted">Exame clínico não registrado</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Diagnóstico -->
+                <div class="col-md-6">
+                    <div class="card h-100 border-success">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-diagnoses me-2"></i>Diagnóstico
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if ficha.diagnostico %}
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>Diagnóstico:</strong> {{ ficha.diagnostico.diagnostico|default:"Não informado" }}</p>
+                                        <p><strong>Plano de Tratamento:</strong> {{ ficha.diagnostico.plano_tratamento|default:"Não informado" }}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>Prognóstico:</strong> {{ ficha.diagnostico.prognostico|default:"Não informado" }}</p>
+                                        <p><strong>Observações:</strong> {{ ficha.diagnostico.observacoes|default:"Não informado" }}</p>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <p class="text-muted">Diagnóstico não registrado</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sessões de Atendimento -->
+            <div class="mt-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-calendar-check me-2"></i>Sessões de Atendimento
+                    </h5>
+                    <div class="btn-group">
+                        <a href="{% url 'fichas_clinicas:sessao_create' ficha.pk %}" class="btn btn-success">
+                            <i class="fas fa-plus me-2"></i>Nova Sessão
+                        </a>
+                        <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#agendarSessaoModal">
+                            <i class="fas fa-calendar-plus me-2"></i>Agendar Próxima Sessão
+                        </a>
+                    </div>
+                </div>
+                
+                {% if sessoes %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Procedimento</th>
+                                    <th>Observações</th>
+                                    <th>Realizado por</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for sessao in sessoes %}
+                                    <tr>
+                                        <td>{{ sessao.data_sessao|date:"d/m/Y" }}</td>
+                                        <td>{{ sessao.procedimentos }}</td>
+                                        <td>{{ sessao.observacoes|truncatechars:50 }}</td>
+                                        <td>{{ sessao.realizado_por.get_full_name }}</td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <a href="{% url 'fichas_clinicas:sessao_update' sessao.pk %}" class="btn btn-sm btn-warning">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <a href="{% url 'fichas_clinicas:sessao_excluir' sessao.pk %}" class="btn btn-sm btn-danger">
+                                                    <i class="fas fa-trash"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>Nenhuma sessão de atendimento registrada.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Agendamento de Próxima Sessão -->
+<div class="modal fade" id="agendarSessaoModal" tabindex="-1" aria-labelledby="agendarSessaoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background-color: var(--medium-dark); border: 1px solid rgba(255,255,255,0.1);">
+            <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                <h5 class="modal-title" id="agendarSessaoModalLabel">
+                    <i class="fas fa-calendar-plus me-2 text-primary"></i>Agendar Próxima Sessão
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <form id="agendarSessaoForm" action="{% url 'pacientes:paciente_detalhe' ficha.paciente.pk %}" method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="data_sessao" class="form-label">Data da Sessão</label>
+                        <input type="date" class="form-control" id="data_sessao" name="data_sessao" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="hora_sessao" class="form-label">Horário</label>
+                        <input type="time" class="form-control" id="hora_sessao" name="hora_sessao" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="tipo_sessao" class="form-label">Tipo de Sessão</label>
+                        <select class="form-select" id="tipo_sessao" name="tipo_sessao" required>
+                            <option value="" selected disabled>Selecione o tipo</option>
+                            <option value="Inicial">Consulta Inicial</option>
+                            <option value="Retorno">Retorno</option>
+                            <option value="Tratamento">Tratamento</option>
+                            <option value="Finalização">Finalização</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="observacoes" class="form-label">Observações</label>
+                        <textarea class="form-control" id="observacoes" name="observacoes" rows="3" placeholder="Procedimentos previstos, materiais necessários, etc."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid rgba(255,255,255,0.1);">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Cancelar
+                </button>
+                <button type="submit" form="agendarSessaoForm" class="btn btn-primary">
+                    <i class="fas fa-save me-2"></i>Salvar Agendamento
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Ativar modal quando o documento estiver pronto
+    document.addEventListener('DOMContentLoaded', function() {
+        // Definir data mínima para agendamento (hoje)
+        const dataInput = document.getElementById('data_sessao');
+        if (dataInput) {
+            const hoje = new Date();
+            const anoAtual = hoje.getFullYear();
+            let mesAtual = hoje.getMonth() + 1;
+            let diaAtual = hoje.getDate();
+            
+            // Formatar mês e dia com zero à esquerda se necessário
+            mesAtual = mesAtual < 10 ? '0' + mesAtual : mesAtual;
+            diaAtual = diaAtual < 10 ? '0' + diaAtual : diaAtual;
+            
+            const dataMinima = `${anoAtual}-${mesAtual}-${diaAtual}`;
+            dataInput.setAttribute('min', dataMinima);
+            dataInput.value = dataMinima;
+        }
+    });
+</script>
+{% endblock %} 

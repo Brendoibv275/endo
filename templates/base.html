@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0A1128">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>{% block title %}OdontoEndo{% endblock %}</title>
+    <!-- Google Fonts - Nunito & Exo 2 para estilo de jogo -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/custom.css">
+    <style>
+        :root {
+            --primary-color: #0066CC;
+            --primary-light: #007bff;
+            --primary-dark: #004080;
+            --accent-color: #00C2FF;
+            --dark-bg: #0A1128;
+            --medium-dark: #151F30;
+            --light-bg: #1E293B; 
+            --text-primary: #FFFFFF;
+            --text-secondary: #94A3B8;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --info-color: #00C2FF;
+        }
+        
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text-primary);
+            padding-top: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Layout principal */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        .main-content {
+            flex: 1;
+            padding-top: 60px;
+            padding-bottom: 70px;
+        }
+        
+        /* Barra superior de navegação */
+        .game-navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1030;
+            background: linear-gradient(90deg, var(--dark-bg), var(--medium-dark));
+            height: 60px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            padding: 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .game-brand {
+            font-family: 'Exo 2', sans-serif;
+            font-weight: 700;
+            font-size: 1.4rem;
+            background: linear-gradient(45deg, var(--primary-light), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+        }
+        
+        .game-brand i {
+            color: var(--accent-color);
+            margin-right: 8px;
+            font-size: 1.5rem;
+            -webkit-text-fill-color: var(--accent-color);
+        }
+        
+        /* Menu de navegação gamificado */
+        .mobile-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: var(--medium-dark);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 1030;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .nav-item {
+            flex: 1;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-item.active {
+            color: var(--primary-light);
+        }
+        
+        .nav-item i {
+            font-size: 1.4rem;
+            margin-bottom: 4px;
+        }
+        
+        .nav-item::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 30%;
+            right: 30%;
+            height: 3px;
+            background-color: var(--primary-light);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        
+        .nav-item.active::after {
+            transform: scaleX(1);
+        }
+        
+        /* Cards no estilo de jogo */
+        .game-card {
+            background-color: var(--medium-dark);
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            overflow: hidden;
+            margin-bottom: 20px;
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+        
+        .game-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+        }
+        
+        .game-card-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            padding: 12px 16px;
+            font-family: 'Exo 2', sans-serif;
+            font-weight: 600;
+        }
+        
+        .game-card-body {
+            padding: 16px;
+        }
+        
+        /* Botões estilo de jogo */
+        .game-btn {
+            border-radius: 50px;
+            font-weight: 600;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.9rem;
+            padding: 10px 20px;
+        }
+        
+        .game-btn-primary {
+            background: linear-gradient(45deg, var(--primary-color), var(--primary-light));
+            border: none;
+            color: white;
+        }
+        
+        .game-btn-primary:hover, .game-btn-primary:focus {
+            background: linear-gradient(45deg, var(--primary-light), var(--primary-color));
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+        
+        .game-btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary-light);
+            color: var(--primary-light);
+        }
+        
+        .game-btn-outline:hover, .game-btn-outline:focus {
+            background-color: rgba(0, 102, 204, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        /* Alertas estilizados */
+        .game-alert {
+            border-radius: 12px;
+            border-left: 4px solid;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        .game-alert-icon {
+            margin-right: 16px;
+            font-size: 1.5rem;
+        }
+        
+        .game-alert-success {
+            background-color: rgba(16, 185, 129, 0.1);
+            border-left-color: var(--success-color);
+            color: var(--success-color);
+        }
+        
+        .game-alert-warning {
+            background-color: rgba(245, 158, 11, 0.1);
+            border-left-color: var(--warning-color);
+            color: var(--warning-color);
+        }
+        
+        .game-alert-danger {
+            background-color: rgba(239, 68, 68, 0.1);
+            border-left-color: var(--danger-color);
+            color: var(--danger-color);
+        }
+        
+        .game-alert-info {
+            background-color: rgba(0, 194, 255, 0.1);
+            border-left-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+        
+        /* Animações */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        /* Footer */
+        .game-footer {
+            padding: 20px 0;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+        
+        /* Responsividade */
+        @media (min-width: 992px) {
+            .main-content {
+                padding-left: 80px;
+                padding-bottom: 0;
+            }
+            
+            .mobile-nav {
+                left: 0;
+                top: 60px;
+                bottom: 0;
+                width: 80px;
+                height: calc(100vh - 60px);
+                flex-direction: column;
+            }
+            
+            .nav-item {
+                height: 80px;
+            }
+            
+            .nav-item::after {
+                left: 0;
+                right: auto;
+                top: 20%;
+                bottom: 20%;
+                width: 3px;
+                height: auto;
+                transform: scaleY(0);
+            }
+            
+            .nav-item.active::after {
+                transform: scaleY(1);
+            }
+        }
+
+        .sidebar {
+            height: 100vh;
+            width: 80px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: #1a237e;
+            padding-top: 20px;
+            z-index: 1000;
+            overflow-x: hidden;
+            transition: width 0.3s ease;
+        }
+
+        .sidebar:hover {
+            width: 200px;
+        }
+
+        .sidebar a {
+            padding: 15px;
+            text-decoration: none;
+            font-size: 18px;
+            color: white;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .sidebar a:hover {
+            background-color: #283593;
+        }
+
+        .sidebar i {
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .sidebar span {
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .sidebar:hover span {
+            opacity: 1;
+            display: inline;
+        }
+
+        .main-content {
+            margin-left: 80px;
+            padding: 20px;
+            transition: 0.3s;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 60px;
+            }
+            .main-content {
+                margin-left: 60px;
+            }
+        }
+
+        .login-page {
+            margin-left: 0 !important;
+        }
+
+        .login-page .sidebar {
+            display: none;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% if user.is_authenticated %}
+    <div class="sidebar">
+        <a href="{% url 'dashboard' %}" title="Início">
+            <i class="fas fa-home"></i>
+            <span>Início</span>
+        </a>
+        <a href="{% url 'pacientes:paciente_lista' %}" title="Pacientes">
+            <i class="fas fa-users"></i>
+            <span>Pacientes</span>
+        </a>
+        <a href="{% url 'fichas_clinicas:list' %}" title="Fichas">
+            <i class="fas fa-folder"></i>
+            <span>Fichas</span>
+        </a>
+        <a href="{% url 'fichas_clinicas:sessao_lista' %}" title="Sessões">
+            <i class="fas fa-calendar-alt"></i>
+            <span>Sessões</span>
+        </a>
+        {% if user.profile.funcao and user.profile.funcao.nome == 'Líder de Equipe' %}
+        <a href="{% url 'pacientes:clinica_management' %}" title="Gerenciar Clínica">
+            <i class="fas fa-hospital"></i>
+            <span>Clínica</span>
+        </a>
+        {% endif %}
+        <a href="{% url 'logout' %}" title="Sair">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Sair</span>
+        </a>
+    </div>
+    {% endif %}
+
+    <div class="{% if not user.is_authenticated %}login-page{% endif %} main-content">
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="/static/js/custom.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

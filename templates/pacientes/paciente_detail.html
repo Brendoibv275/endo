@@ -1,0 +1,337 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ paciente.nome }} - OdontoEndo{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Cabeçalho do perfil -->
+    <div class="game-card mb-4">
+        <div class="game-card-body p-0">
+            <div class="position-relative">
+                <!-- Banner do paciente com fundo gradiente -->
+                <div class="position-relative" style="height: 120px; background: linear-gradient(135deg, var(--primary-dark), var(--accent-color));">
+                    <div class="position-absolute bottom-0 start-0 w-100 p-3 d-flex justify-content-between align-items-end">
+                        <div class="d-flex align-items-center">
+                            <!-- Avatar/Foto do paciente - Exibir foto real ou um ícone -->
+                            <div class="rounded-circle bg-white p-1 me-3 shadow" style="width: 80px; height: 80px; overflow: hidden;">
+                                {% if paciente.foto %}
+                                <img src="{{ paciente.foto.url }}" alt="{{ paciente.nome }}" class="img-fluid rounded-circle">
+                                {% else %}
+                                <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-primary rounded-circle">
+                                    <i class="fas fa-user text-white" style="font-size: 2rem;"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <!-- Informações básicas -->
+                            <div>
+                                <h2 class="mb-0 text-white text-glow" style="text-shadow: 0 2px 4px rgba(0,0,0,0.3);">{{ paciente.nome }}</h2>
+                                <span class="badge bg-light text-dark">
+                                    <i class="fas fa-id-card me-1"></i> ID: {{ paciente.id }}
+                                </span>
+                            </div>
+                        </div>
+                        <!-- Indicador de status -->
+                        <div>
+                            {% if paciente.ativo %}
+                            <span class="badge bg-success pulse">
+                                <i class="fas fa-check-circle me-1"></i> Ativo
+                            </span>
+                            {% else %}
+                            <span class="badge bg-danger">
+                                <i class="fas fa-times-circle me-1"></i> Inativo
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Barra de ações - Botões principais -->
+                <div class="p-3 border-top border-bottom border-dark-subtle" style="background-color: var(--medium-dark);">
+                    <div class="d-flex flex-wrap gap-2 justify-content-end">
+                        <a href="{% url 'fichas_clinicas:ficha_nova_paciente' paciente.pk %}" class="btn game-btn game-btn-primary">
+                            <i class="fas fa-file-medical me-md-2"></i><span class="d-none d-md-inline">Nova Ficha</span>
+                        </a>
+                        <a href="#" class="btn game-btn game-btn-primary" data-bs-toggle="modal" data-bs-target="#agendarSessaoModal">
+                            <i class="fas fa-calendar-plus me-md-2"></i><span class="d-none d-md-inline">Agendar Próxima Sessão</span>
+                        </a>
+                        <a href="{% url 'fichas_clinicas:fichas_paciente' paciente.pk %}" class="btn game-btn game-btn-outline">
+                            <i class="fas fa-folder-open me-md-2"></i><span class="d-none d-md-inline">Fichas</span>
+                        </a>
+                        <a href="{% url 'pacientes:paciente_editar' paciente.pk %}" class="btn game-btn game-btn-outline">
+                            <i class="fas fa-edit me-md-2"></i><span class="d-none d-md-inline">Editar</span>
+                        </a>
+                        <a href="{% url 'pacientes:paciente_lista' %}" class="btn game-btn game-btn-outline">
+                            <i class="fas fa-arrow-left me-md-2"></i><span class="d-none d-md-inline">Voltar</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navegação em abas para informações do paciente -->
+    <ul class="nav nav-tabs mb-4" id="pacienteTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="pessoal-tab" data-bs-toggle="tab" data-bs-target="#pessoal" type="button" role="tab">
+                <i class="fas fa-user me-2"></i><span class="d-none d-md-inline">Dados Pessoais</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="contato-tab" data-bs-toggle="tab" data-bs-target="#contato" type="button" role="tab">
+                <i class="fas fa-address-book me-2"></i><span class="d-none d-md-inline">Contato</span>
+            </button>
+        </li>
+        {% if paciente.observacoes %}
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="observacoes-tab" data-bs-toggle="tab" data-bs-target="#observacoes" type="button" role="tab">
+                <i class="fas fa-clipboard me-2"></i><span class="d-none d-md-inline">Observações</span>
+            </button>
+        </li>
+        {% endif %}
+    </ul>
+
+    <!-- Conteúdo das abas -->
+    <div class="tab-content">
+        <!-- Informações Pessoais -->
+        <div class="tab-pane fade show active" id="pessoal" role="tabpanel">
+            <div class="game-card mb-4">
+                <div class="game-card-header">
+                    <i class="fas fa-info-circle me-2"></i> Informações Pessoais
+                </div>
+                <div class="game-card-body">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="d-flex">
+                                <div class="me-3 text-primary" style="width: 24px;">
+                                    <i class="fas fa-birthday-cake"></i>
+                                </div>
+                                <div>
+                                    <div class="text-secondary small">Data de Nascimento</div>
+                                    <div>{{ paciente.data_nascimento|date:"d/m/Y" }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex">
+                                <div class="me-3 text-primary" style="width: 24px;">
+                                    <i class="fas fa-user-clock"></i>
+                                </div>
+                                <div>
+                                    <div class="text-secondary small">Idade</div>
+                                    <div>{{ paciente.idade }} anos</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex">
+                                <div class="me-3 text-primary" style="width: 24px;">
+                                    <i class="fas fa-venus-mars"></i>
+                                </div>
+                                <div>
+                                    <div class="text-secondary small">Sexo</div>
+                                    <div>{{ paciente.get_sexo_display }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex">
+                                <div class="me-3 text-primary" style="width: 24px;">
+                                    <i class="fas fa-id-card"></i>
+                                </div>
+                                <div>
+                                    <div class="text-secondary small">CPF</div>
+                                    <div>{{ paciente.cpf }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex">
+                                <div class="me-3 text-primary" style="width: 24px;">
+                                    <i class="fas fa-calendar-plus"></i>
+                                </div>
+                                <div>
+                                    <div class="text-secondary small">Data de Cadastro</div>
+                                    <div>{{ paciente.data_cadastro|date:"d/m/Y H:i" }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex">
+                                <div class="me-3 text-primary" style="width: 24px;">
+                                    <i class="fas fa-edit"></i>
+                                </div>
+                                <div>
+                                    <div class="text-secondary small">Última Atualização</div>
+                                    <div>{{ paciente.data_atualizacao|date:"d/m/Y H:i" }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contato -->
+        <div class="tab-pane fade" id="contato" role="tabpanel">
+            <div class="game-card mb-4">
+                <div class="game-card-header">
+                    <i class="fas fa-address-book me-2"></i> Contato
+                </div>
+                <div class="game-card-body">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="d-flex">
+                                <div class="me-3 text-primary" style="width: 24px;">
+                                    <i class="fas fa-phone"></i>
+                                </div>
+                                <div>
+                                    <div class="text-secondary small">Telefone</div>
+                                    <div>
+                                        <a href="tel:{{ paciente.telefone }}" class="text-decoration-none text-primary">
+                                            {{ paciente.telefone }}
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex">
+                                <div class="me-3 text-primary" style="width: 24px;">
+                                    <i class="fas fa-envelope"></i>
+                                </div>
+                                <div>
+                                    <div class="text-secondary small">E-mail</div>
+                                    <div>
+                                        {% if paciente.email %}
+                                        <a href="mailto:{{ paciente.email }}" class="text-decoration-none text-primary">
+                                            {{ paciente.email }}
+                                        </a>
+                                        {% else %}
+                                        <span class="text-secondary">Não informado</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex">
+                                <div class="me-3 text-primary" style="width: 24px;">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                </div>
+                                <div>
+                                    <div class="text-secondary small">Endereço</div>
+                                    <div>{{ paciente.endereco }}</div>
+                                    <div>{{ paciente.cidade }}/{{ paciente.estado }} - {{ paciente.cep }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Observações -->
+        {% if paciente.observacoes %}
+        <div class="tab-pane fade" id="observacoes" role="tabpanel">
+            <div class="game-card mb-4">
+                <div class="game-card-header">
+                    <i class="fas fa-clipboard me-2"></i> Observações
+                </div>
+                <div class="game-card-body">
+                    {{ paciente.observacoes|linebreaks }}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal de Agendamento de Próxima Sessão -->
+<div class="modal fade" id="agendarSessaoModal" tabindex="-1" aria-labelledby="agendarSessaoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background-color: var(--medium-dark); border: 1px solid rgba(255,255,255,0.1);">
+            <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                <h5 class="modal-title" id="agendarSessaoModalLabel">
+                    <i class="fas fa-calendar-plus me-2 text-primary"></i>Agendar Próxima Sessão
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <form id="agendarSessaoForm" action="{% url 'pacientes:paciente_detalhe' paciente.pk %}" method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="data_sessao" class="form-label">Data da Sessão</label>
+                        <input type="date" class="form-control" id="data_sessao" name="data_sessao" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="hora_sessao" class="form-label">Horário</label>
+                        <input type="time" class="form-control" id="hora_sessao" name="hora_sessao" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="tipo_sessao" class="form-label">Tipo de Sessão</label>
+                        <select class="form-select" id="tipo_sessao" name="tipo_sessao" required>
+                            <option value="" selected disabled>Selecione o tipo</option>
+                            <option value="Inicial">Consulta Inicial</option>
+                            <option value="Retorno">Retorno</option>
+                            <option value="Tratamento">Tratamento</option>
+                            <option value="Finalização">Finalização</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="observacoes" class="form-label">Observações</label>
+                        <textarea class="form-control" id="observacoes" name="observacoes" rows="3" placeholder="Procedimentos previstos, materiais necessários, etc."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid rgba(255,255,255,0.1);">
+                <button type="button" class="btn game-btn game-btn-outline" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Cancelar
+                </button>
+                <button type="submit" form="agendarSessaoForm" class="btn game-btn game-btn-primary">
+                    <i class="fas fa-save me-2"></i>Salvar Agendamento
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Ativar a primeira aba quando o documento estiver pronto
+    document.addEventListener('DOMContentLoaded', function() {
+        // Adicionar efeito de pulsação nos badges
+        const badges = document.querySelectorAll('.badge');
+        badges.forEach(badge => {
+            badge.addEventListener('mouseover', function() {
+                this.classList.add('pulse');
+            });
+            badge.addEventListener('mouseout', function() {
+                this.classList.remove('pulse');
+            });
+        });
+        
+        // Definir data mínima para agendamento (hoje)
+        const dataInput = document.getElementById('data_sessao');
+        if (dataInput) {
+            const hoje = new Date();
+            const anoAtual = hoje.getFullYear();
+            let mesAtual = hoje.getMonth() + 1;
+            let diaAtual = hoje.getDate();
+            
+            // Formatar mês e dia com zero à esquerda se necessário
+            mesAtual = mesAtual < 10 ? '0' + mesAtual : mesAtual;
+            diaAtual = diaAtual < 10 ? '0' + diaAtual : diaAtual;
+            
+            const dataMinima = `${anoAtual}-${mesAtual}-${diaAtual}`;
+            dataInput.setAttribute('min', dataMinima);
+            dataInput.value = dataMinima;
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Registro de Usuário{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-center">Registro de Usuário</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            {{ form.username|as_crispy_field }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.email|as_crispy_field }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.first_name|as_crispy_field }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.last_name|as_crispy_field }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.password1|as_crispy_field }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.password2|as_crispy_field }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.is_admin|as_crispy_field }}
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Registrar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

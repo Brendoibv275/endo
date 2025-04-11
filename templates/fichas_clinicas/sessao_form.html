@@ -1,0 +1,356 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+    {% if form.instance.pk %}
+        Editar Sessão #{{ form.instance.pk }}
+    {% else %}
+        Nova Sessão
+    {% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .card {
+        border-radius: 0.75rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        border: none;
+        transition: all 0.3s ease;
+    }
+    
+    .card-header {
+        background-color: rgba(0, 0, 0, 0.03);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+        padding: 1rem 1.25rem;
+        border-radius: 0.75rem 0.75rem 0 0;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-control, .form-select {
+        border-radius: 0.5rem;
+        padding: 0.7rem 1rem;
+    }
+    
+    label {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #4b5563;
+    }
+    
+    .btn {
+        border-radius: 0.5rem;
+        padding: 0.6rem 1.2rem;
+        font-weight: 600;
+    }
+    
+    .card-section {
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1.5rem;
+        background-color: #f8fafc;
+        border-left: 4px solid #2563eb;
+    }
+    
+    .form-header {
+        margin-bottom: 2rem;
+        border-bottom: 1px solid #e5e7eb;
+        padding-bottom: 1rem;
+    }
+    
+    .hint-text {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-top: 0.25rem;
+    }
+    
+    .nav-tabs .nav-link {
+        border-radius: 0.5rem 0.5rem 0 0;
+        padding: 12px 20px;
+        font-weight: 600;
+        color: #6c757d;
+        border: 1px solid #dee2e6;
+        border-bottom: none;
+        margin-right: 5px;
+    }
+    
+    .nav-tabs .nav-link.active {
+        background-color: #fff;
+        color: #2563eb;
+        border-bottom: none;
+        border-top: 3px solid #2563eb;
+    }
+    
+    .tab-content {
+        padding: 2rem;
+        background-color: #fff;
+        border: 1px solid #dee2e6;
+        border-top: none;
+        border-radius: 0 0 0.5rem 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="form-header d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            {% if form.instance.pk %}
+                <i class="fas fa-edit me-2"></i>Editar Sessão #{{ form.instance.pk }}
+            {% else %}
+                <i class="fas fa-plus-circle me-2"></i>Nova Sessão
+            {% endif %}
+        </h1>
+        <a href="{% url 'fichas_clinicas:ficha_detail' ficha_id %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Voltar para Ficha
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <ul class="nav nav-tabs" id="sessaoTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="info-tab" data-bs-toggle="tab" data-bs-target="#info" type="button" role="tab" aria-controls="info" aria-selected="true">
+                        <i class="fas fa-info-circle me-2"></i>Informações Gerais
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="tratamento-tab" data-bs-toggle="tab" data-bs-target="#tratamento" type="button" role="tab" aria-controls="tratamento" aria-selected="false">
+                        <i class="fas fa-tooth me-2"></i>Tratamento Endodôntico
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="imagem-tab" data-bs-toggle="tab" data-bs-target="#imagem" type="button" role="tab" aria-controls="imagem" aria-selected="false">
+                        <i class="fas fa-image me-2"></i>Imagens/Radiografias
+                    </button>
+                </li>
+            </ul>
+
+            <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                {% csrf_token %}
+                
+                <div class="tab-content" id="sessaoTabContent">
+                    <!-- Informações Gerais -->
+                    <div class="tab-pane fade show active" id="info" role="tabpanel" aria-labelledby="info-tab">
+                        <h4 class="mb-4"><i class="fas fa-info-circle me-2"></i>Informações da Sessão</h4>
+                        <p class="hint-text mb-4">Registre os dados básicos e procedimentos realizados na sessão.</p>
+                        
+                        <div class="card-section">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    {{ form.data_sessao|as_crispy_field }}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form.realizado_por|as_crispy_field }}
+                                </div>
+                            </div>
+                            
+                            <div class="row g-3 mt-2">
+                                <div class="col-md-12">
+                                    {{ form.procedimentos|as_crispy_field }}
+                                </div>
+                            </div>
+                            
+                            <div class="row g-3 mt-2">
+                                <div class="col-md-12">
+                                    {{ form.observacoes|as_crispy_field }}
+                                </div>
+                            </div>
+                            
+                            <div class="row g-3 mt-2">
+                                <div class="col-md-12">
+                                    {{ form.materiais|as_crispy_field }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'fichas_clinicas:ficha_detail' ficha_id %}" class="btn btn-outline-secondary">Cancelar</a>
+                            <button type="button" class="btn btn-primary next-tab" data-next="tratamento-tab">
+                                Próximo: Tratamento Endodôntico <i class="fas fa-arrow-right ms-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Tratamento Endodôntico -->
+                    <div class="tab-pane fade" id="tratamento" role="tabpanel" aria-labelledby="tratamento-tab">
+                        <h4 class="mb-4"><i class="fas fa-tooth me-2"></i>Detalhes do Tratamento Endodôntico</h4>
+                        <p class="hint-text mb-4">Registre as medidas e materiais utilizados no tratamento endodôntico.</p>
+                        
+                        <div class="card-section">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    {{ form.ctp|as_crispy_field }}
+                                </div>
+                                <div class="col-md-4">
+                                    {{ form.iaf|as_crispy_field }}
+                                </div>
+                                <div class="col-md-4">
+                                    {{ form.crt|as_crispy_field }}
+                                </div>
+                            </div>
+                            
+                            <div class="row g-3 mt-2">
+                                <div class="col-md-4">
+                                    {{ form.lai|as_crispy_field }}
+                                </div>
+                                <div class="col-md-4">
+                                    {{ form.im|as_crispy_field }}
+                                </div>
+                                <div class="col-md-4">
+                                    {{ form.grampo|as_crispy_field }}
+                                </div>
+                            </div>
+                            
+                            <div class="row g-3 mt-2">
+                                <div class="col-md-6">
+                                    {{ form.canal|as_crispy_field }}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form.cad|as_crispy_field }}
+                                </div>
+                            </div>
+                            
+                            <div class="row g-3 mt-2">
+                                <div class="col-md-6">
+                                    {{ form.solucao_irrigadora|as_crispy_field }}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form.curativo_demora|as_crispy_field }}
+                                </div>
+                            </div>
+                            
+                            <div class="row g-3 mt-2">
+                                <div class="col-md-6">
+                                    {{ form.material_obturador|as_crispy_field }}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form.medicacao_sistemica|as_crispy_field }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mt-4">
+                            <button type="button" class="btn btn-outline-secondary prev-tab" data-prev="info-tab">
+                                <i class="fas fa-arrow-left me-2"></i> Voltar: Informações Gerais
+                            </button>
+                            <button type="button" class="btn btn-primary next-tab" data-next="imagem-tab">
+                                Próximo: Imagens/Radiografias <i class="fas fa-arrow-right ms-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Imagens/Radiografias -->
+                    <div class="tab-pane fade" id="imagem" role="tabpanel" aria-labelledby="imagem-tab">
+                        <h4 class="mb-4"><i class="fas fa-image me-2"></i>Imagens e Radiografias</h4>
+                        <p class="hint-text mb-4">Adicione imagens ou radiografias relacionadas a esta sessão.</p>
+                        
+                        <div class="card-section">
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    {{ form.imagem|as_crispy_field }}
+                                </div>
+                            </div>
+                            
+                            <div class="row g-3 mt-2">
+                                <div class="col-md-12">
+                                    {{ form.descricao_imagem|as_crispy_field }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mt-4">
+                            <button type="button" class="btn btn-outline-secondary prev-tab" data-prev="tratamento-tab">
+                                <i class="fas fa-arrow-left me-2"></i> Voltar: Tratamento Endodôntico
+                            </button>
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-save me-2"></i> Salvar Sessão
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Navegação entre abas
+        const navButtons = document.querySelectorAll('.next-tab, .prev-tab');
+        
+        navButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const targetTab = this.classList.contains('next-tab') 
+                    ? this.getAttribute('data-next') 
+                    : this.getAttribute('data-prev');
+                
+                document.getElementById(targetTab).click();
+                window.scrollTo(0, 0);
+            });
+        });
+        
+        // Visualização prévia da imagem
+        const inputImagem = document.querySelector('input[type="file"]');
+        
+        if (inputImagem) {
+            inputImagem.addEventListener('change', function() {
+                const previewContainer = document.getElementById('preview-container') || document.createElement('div');
+                previewContainer.id = 'preview-container';
+                previewContainer.className = 'text-center mt-3';
+                
+                if (!document.getElementById('preview-container')) {
+                    this.parentNode.appendChild(previewContainer);
+                }
+                
+                if (this.files && this.files[0]) {
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        previewContainer.innerHTML = `
+                            <div class="alert alert-info">
+                                <i class="fas fa-check-circle me-2"></i> Imagem selecionada
+                            </div>
+                            <img src="${e.target.result}" class="img-fluid rounded" style="max-height: 300px;">
+                        `;
+                    }
+                    
+                    reader.readAsDataURL(this.files[0]);
+                } else {
+                    previewContainer.innerHTML = '';
+                }
+            });
+        }
+        
+        // Validação do formulário
+        const form = document.querySelector('form.needs-validation');
+        
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                // Encontrar a primeira aba com erro e ativá-la
+                const tabs = ['info', 'tratamento', 'imagem'];
+                
+                for (const tabId of tabs) {
+                    const tabPane = document.getElementById(tabId);
+                    const invalidFields = tabPane.querySelectorAll(':invalid');
+                    
+                    if (invalidFields.length > 0) {
+                        document.getElementById(tabId + '-tab').click();
+                        invalidFields[0].focus();
+                        break;
+                    }
+                }
+            }
+            
+            form.classList.add('was-validated');
+        });
+    });
+</script>
+{% endblock %}
